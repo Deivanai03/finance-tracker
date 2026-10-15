@@ -34,6 +34,20 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   late final Animation<double> _heroFade;
   late final ConfettiController _confettiCtrl;
 
+  bool _reorderMode = false;
+  // Ordered list of category keys; null = use default (most-used) sort
+  List<int>? _customOrder;
+
+  static const _lightCardColors = [
+    Color(0xFFFDE8EE), Color(0xFFEADFFF), Color(0xFFDDEEE8),
+    Color(0xFFFFF0D6), Color(0xFFD6EAFF), Color(0xFFFFE4F0),
+  ];
+  static const _darkCardColors = [
+    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
+    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
+  ];
+  List<Color> get _cardBgColors => themeNotifier.value ? _darkCardColors : _lightCardColors;
+
   @override
   void initState() {
     super.initState();
@@ -42,7 +56,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     _heroFade = CurvedAnimation(parent: _heroController, curve: Curves.easeOut);
     _confettiCtrl = ConfettiController(duration: const Duration(seconds: 4));
 
-    // Fire confetti if it's 1st–3rd of month and prev month was under budget
+    _customOrder = SettingsService.categoryOrder;
+
     final day = DateTime.now().day;
     if (day <= 3) {
       final budget = SettingsService.monthlyBudget;
@@ -70,57 +85,99 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return 'Good evening 🌙';
   }
 
+  List<Category> _sortedCategories() {
+    final all = CategoryService.getAllCategories();
+    final order = _customOrder;
+
+    if (order == null || order.isEmpty) {
+      // Default: sort by most used in current cycle
+      return all
+        ..sort((a, b) => ExpenseService.getCurrentCycleCategoryTotal(b.key as int)
+            .compareTo(ExpenseService.getCurrentCycleCategoryTotal(a.key as int)));
+    }
+
+    // Apply custom order; append any new categories not yet in the saved order
+    final orderMap = {for (var i = 0; i < order.length; i++) order[i]: i};
+    return all
+      ..sort((a, b) {
+        final ai = orderMap[a.key as int] ?? 999;
+        final bi = orderMap[b.key as int] ?? 999;
+        return ai.compareTo(bi);
+      });
+  }
+
+  void _saveOrder(List<Category> categories) {
+    final keys = categories.map((c) => c.key as int).toList();
+    setState(() => _customOrder = keys);
+    SettingsService.categoryOrder = keys;
+  }
+
+  void _resetToDefault() {
+    setState(() {
+      _customOrder = null;
+      _reorderMode = false;
+    });
+    SettingsService.categoryOrder = null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
       valueListenable: themeNotifier,
       builder: (context, _, __) {
-        final categories = CategoryService.getAllCategories();
-        final totalSpent = ExpenseService.getCurrentMonthTotal();
-        final totalIncome = IncomeService.getCurrentMonthTotal();
+        final categories = _sortedCategories();
+        final totalSpent = ExpenseService.getCurrentCycleTotal();
+        final totalIncome = IncomeService.getCurrentCycleTotal();
         final budget = SettingsService.monthlyBudget;
 
         return Stack(
           children: [
             Scaffold(
-      backgroundColor: AC.bg,
-      body: SafeArea(
-        bottom: false,
-        child: RefreshIndicator(
-          color: AC.accent,
-          backgroundColor: AC.card,
-          onRefresh: () async {
-            HapticFeedback.lightImpact();
-            setState(() {});
-          },
-          child: CustomScrollView(
-            slivers: [
-              SliverToBoxAdapter(child: _buildHeader(totalSpent, totalIncome, budget)),
-              SliverToBoxAdapter(child: _buildInsights(totalSpent)),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-                sliver: SliverGrid(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      if (index == categories.length) return _buildAddCategoryCard();
-                      return _buildCategoryCard(context, categories[index], index);
-                    },
-                    childCount: categories.length + 1,
-                  ),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12,
-                    mainAxisSpacing: 12,
-                    childAspectRatio: 0.95,
+              backgroundColor: AC.bg,
+              body: SafeArea(
+                bottom: false,
+                child: RefreshIndicator(
+                  color: AC.accent,
+                  backgroundColor: AC.card,
+                  onRefresh: () async {
+                    HapticFeedback.lightImpact();
+                    setState(() {});
+                  },
+                  child: CustomScrollView(
+                    slivers: [
+                      SliverToBoxAdapter(child: _buildHeader(totalSpent, totalIncome, budget)),
+                      SliverToBoxAdapter(child: _buildInsights(totalSpent)),
+                      if (_reorderMode)
+                        SliverToBoxAdapter(child: _buildReorderBanner()),
+                      if (_reorderMode)
+                        SliverToBoxAdapter(
+                          child: _buildReorderableGrid(categories),
+                        )
+                      else
+                        SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+                          sliver: SliverGrid(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                if (index == categories.length) return _buildAddCategoryCard();
+                                return _buildCategoryCard(context, categories[index], index);
+                              },
+                              childCount: categories.length + 1,
+                            ),
+                            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 2,
+                              crossAxisSpacing: 12,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: 0.95,
+                            ),
+                          ),
+                        ),
+                      const SliverToBoxAdapter(child: SizedBox(height: 120)),
+                    ],
                   ),
                 ),
               ),
-              const SliverToBoxAdapter(child: SizedBox(height: 120)),
-            ],
-          ),
-        ),
-      ),
-    ),
+            ),
             Align(
               alignment: Alignment.topCenter,
               child: ConfettiWidget(
@@ -134,6 +191,131 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           ],
         );
       },
+    );
+  }
+
+  Widget _buildReorderBanner() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: BoxDecoration(
+          color: AC.accent.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(color: AC.accent.withValues(alpha: 0.4)),
+        ),
+        child: Row(
+          children: [
+            Icon(Icons.drag_indicator_rounded, size: 18, color: AC.accent),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                'Drag to reorder categories',
+                style: GoogleFonts.inter(fontSize: 13, color: AC.text),
+              ),
+            ),
+            GestureDetector(
+              onTap: _resetToDefault,
+              child: Text(
+                'Reset',
+                style: GoogleFonts.inter(fontSize: 12, color: AC.textLight, decoration: TextDecoration.underline),
+              ),
+            ),
+            const SizedBox(width: 12),
+            GestureDetector(
+              onTap: () => setState(() => _reorderMode = false),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AC.accent,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text('Done', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AC.bg)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReorderableGrid(List<Category> categories) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+      child: ReorderableListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        proxyDecorator: (child, index, animation) => Material(
+          color: Colors.transparent,
+          child: ScaleTransition(
+            scale: animation.drive(Tween(begin: 1.0, end: 1.04)
+                .chain(CurveTween(curve: Curves.easeOut))),
+            child: child,
+          ),
+        ),
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final category = categories[index];
+          return _buildDraggableCategoryCard(context, category, index, key: ValueKey(category.key));
+        },
+        onReorderItem: (oldIndex, newIndex) {
+          HapticFeedback.mediumImpact();
+          final reordered = List<Category>.from(categories);
+          final item = reordered.removeAt(oldIndex);
+          reordered.insert(newIndex, item);
+          _saveOrder(reordered);
+        },
+      ),
+    );
+  }
+
+  Widget _buildDraggableCategoryCard(BuildContext context, Category category, int index, {required Key key}) {
+    final categoryId = category.key as int;
+    final total = ExpenseService.getCurrentCycleCategoryTotal(categoryId);
+    final bgColor = _cardBgColors[index % _cardBgColors.length];
+
+    return Padding(
+      key: key,
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [BoxShadow(color: bgColor.withValues(alpha: 0.6), blurRadius: 12, offset: const Offset(0, 4))],
+        ),
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Text(category.emoji, style: const TextStyle(fontSize: 32)),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(category.name, style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: AC.text)),
+                  const SizedBox(height: 2),
+                  Text(fmtAmount(total), style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.w600, color: AC.text)),
+                  if (category.budget != null) ...[
+                    const SizedBox(height: 6),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(4),
+                      child: LinearProgressIndicator(
+                        value: (total / category.budget!).clamp(0.0, 1.0),
+                        minHeight: 4,
+                        backgroundColor: AC.text.withValues(alpha: 0.15),
+                        valueColor: AlwaysStoppedAnimation(
+                          total > category.budget! ? Colors.red[300]! : AC.accent,
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            Icon(Icons.drag_handle_rounded, color: AC.textLight, size: 22),
+          ],
+        ),
+      ),
     );
   }
 
@@ -195,6 +377,13 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     final budgetProgress = hasBudget ? (totalSpent / budget).clamp(0.0, 1.0) : 0.0;
     final overBudget = hasBudget && totalSpent > budget;
 
+    final cycleStart = SettingsService.cycleStart;
+    final cycleEnd = SettingsService.cycleEnd;
+    final hasSalaryDate = SettingsService.salaryDate != null;
+    final cycleLabel = hasSalaryDate
+        ? '${DateFormat('dd MMM').format(cycleStart)} – ${DateFormat('dd MMM').format(cycleEnd)}'
+        : 'This month';
+
     return AnimatedBuilder(
       animation: _sparkleController,
       builder: (context, child) {
@@ -203,10 +392,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [
-                Color.lerp(AC.primary, AC.accent, _sparkleController.value * 0.3)!,
-                Color.lerp(AC.secondary, AC.primary, _sparkleController.value * 0.2)!,
-              ],
+              colors: [AC.primary, AC.accent.withValues(alpha: 0.6)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
@@ -219,14 +405,14 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('This month', style: GoogleFonts.inter(fontSize: 13, color: AC.text.withValues(alpha: 0.65))),
+                  Text(cycleLabel, style: GoogleFonts.inter(fontSize: 13, color: AC.textLight)),
                   const SizedBox(height: 8),
                   CountUpText(
                     totalSpent,
-                    style: GoogleFonts.dmSans(fontSize: 40, fontWeight: FontWeight.bold, color: AC.text),
+                    style: GoogleFonts.dmSans(fontSize: 40, fontWeight: FontWeight.w600, color: AC.text),
                   ),
                   const SizedBox(height: 4),
-                  Text('total spent', style: GoogleFonts.inter(fontSize: 13, color: AC.text.withValues(alpha: 0.55))),
+                  Text('total spent', style: GoogleFonts.inter(fontSize: 13, color: AC.textLight)),
                   if (hasBudget) ...[
                     const SizedBox(height: 12),
                     Row(
@@ -234,10 +420,10 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       children: [
                         Text(
                           overBudget ? '⚠️ Over budget' : 'Budget: ${fmtAmount(totalSpent)} / ${fmtAmount(budget)}',
-                          style: GoogleFonts.inter(fontSize: 12, color: overBudget ? Colors.red[300] : AC.text.withValues(alpha: 0.7)),
+                          style: GoogleFonts.inter(fontSize: 12, color: overBudget ? Colors.red[400] : AC.textLight),
                         ),
                         Text('${(budgetProgress * 100).toStringAsFixed(0)}%',
-                            style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.bold, color: overBudget ? Colors.red[300] : AC.text.withValues(alpha: 0.7))),
+                            style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: overBudget ? Colors.red[400] : AC.textLight)),
                       ],
                     ),
                     const SizedBox(height: 6),
@@ -246,7 +432,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       child: LinearProgressIndicator(
                         value: budgetProgress,
                         minHeight: 6,
-                        backgroundColor: Colors.white.withValues(alpha: 0.3),
+                        backgroundColor: AC.textLight.withValues(alpha: 0.3),
                         valueColor: AlwaysStoppedAnimation(overBudget ? Colors.red[300]! : AC.accent),
                       ),
                     ),
@@ -282,7 +468,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       emoji = '📊';
     }
 
-    // Top category last month
     final prevCatTotals = ExpenseService.getPreviousMonthCategoryWiseTotals();
     String? topCatStr;
     if (prevCatTotals.isNotEmpty) {
@@ -307,7 +492,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('Last month ($month)', style: GoogleFonts.inter(fontSize: 12, color: AC.textLight)),
-                Text(message, style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.bold, color: AC.text)),
+                Text(message, style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.w600, color: AC.text)),
                 if (topCatStr != null) ...[
                   const SizedBox(height: 2),
                   Text(topCatStr, style: GoogleFonts.inter(fontSize: 12, color: AC.textLight)),
@@ -321,31 +506,34 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildInsights(double thisMonthTotal) {
-    final prevMonthCats = ExpenseService.getPreviousMonthCategoryWiseTotals();
-    final thisMonthCats = ExpenseService.getCategoryWiseTotals();
-    if (prevMonthCats.isEmpty || thisMonthCats.isEmpty) return const SizedBox.shrink();
+    final budget = SettingsService.monthlyBudget;
+    final prevMonthTotal = ExpenseService.getPreviousMonthTotal();
 
-    // Find biggest increase category
-    String? insight;
-    double maxDiff = 0;
-    for (final entry in thisMonthCats.entries) {
-      final prev = prevMonthCats[entry.key] ?? 0;
-      if (prev > 0) {
-        final pct = ((entry.value - prev) / prev) * 100;
-        if (pct > maxDiff && pct > 10) {
-          maxDiff = pct;
-          final cat = CategoryService.getCategoryById(entry.key);
-          if (cat != null) insight = '${cat.emoji} ${cat.name} is up ${pct.toStringAsFixed(0)}% vs last month';
+    String? insightText;
+
+    if (budget != null && budget > 0 && thisMonthTotal > budget) {
+      insightText = "You've gone over budget this month 😬";
+    } else if (budget != null && budget > 0 && thisMonthTotal >= budget * 0.8) {
+      insightText = "Getting close to your budget! Watch your spending 🔔";
+    } else if (budget != null && budget > 0 && thisMonthTotal > 0 && thisMonthTotal < budget * 0.5) {
+      insightText = "Great pace! You're well within budget 🎯";
+    } else if (prevMonthTotal > 0) {
+      // Check if top category this cycle is up vs last month
+      final cycleCategories = CategoryService.getAllCategories();
+      String? topCatName;
+      double topCatTotal = 0;
+      for (final cat in cycleCategories) {
+        final t = ExpenseService.getCurrentCycleCategoryTotal(cat.key as int);
+        if (t > topCatTotal) {
+          topCatTotal = t;
+          topCatName = cat.name;
         }
+      }
+      if (topCatName != null && topCatTotal > 0) {
+        insightText = "Top category this cycle: $topCatName (${fmtAmount(topCatTotal)}) 📊";
       }
     }
 
-    // Top category this month
-    final topId = ExpenseService.getTopCategoryId();
-    final topCat = topId == -1 ? null : CategoryService.getCategoryById(topId);
-    final topInsight = topCat != null ? '${topCat.emoji} Most spent on ${topCat.name} this month' : null;
-
-    final insightText = insight ?? topInsight;
     if (insightText == null) return const SizedBox.shrink();
 
     return Padding(
@@ -380,38 +568,32 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
           animation: _sparkleController,
           builder: (_, __) => Opacity(
             opacity: (0.3 + 0.5 * sin(_sparkleController.value * pi + i)).clamp(0.0, 1.0),
-            child: Text('✦', style: TextStyle(fontSize: size, color: Colors.white.withValues(alpha: 0.7))),
+            child: Text('✦', style: TextStyle(fontSize: size, color: AC.accent.withValues(alpha: 0.6))),
           ),
         ),
       );
     });
   }
 
-  static const _lightCardColors = [
-    Color(0xFFFDE8EE), Color(0xFFEADFFF), Color(0xFFDDEEE8),
-    Color(0xFFFFF0D6), Color(0xFFD6EAFF), Color(0xFFFFE4F0),
-  ];
-  static const _darkCardColors = [
-    Color(0xFF1E0A2E), Color(0xFF1E0A2E), Color(0xFF1E0A2E),
-    Color(0xFF1E0A2E), Color(0xFF1E0A2E), Color(0xFF1E0A2E),
-  ];
-  List<Color> get _cardColors => themeNotifier.value ? _darkCardColors : _lightCardColors;
-
   Widget _buildCategoryCard(BuildContext context, Category category, int index) {
     final categoryId = category.key as int;
-    final total = ExpenseService.getCategoryTotal(categoryId);
-    final color = _cardColors[index % _cardColors.length];
+    final total = ExpenseService.getCurrentCycleCategoryTotal(categoryId);
+    final bgColor = _cardBgColors[index % _cardBgColors.length];
 
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
         fadeScaleRoute(CategoryDetailsScreen(categoryId: categoryId, categoryName: category.name, emoji: category.emoji)),
       ).then((_) => setState(() {})),
+      onLongPress: () {
+        HapticFeedback.mediumImpact();
+        setState(() => _reorderMode = true);
+      },
       child: Container(
         decoration: BoxDecoration(
-          color: color,
+          color: bgColor,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.6), blurRadius: 12, offset: const Offset(0, 4))],
+          boxShadow: [BoxShadow(color: bgColor.withValues(alpha: 0.6), blurRadius: 12, offset: const Offset(0, 4))],
         ),
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -449,16 +631,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   },
                   child: Container(
                     padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(color: AC.text.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(10)),
+                    decoration: BoxDecoration(color: AC.text.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                     child: Icon(Icons.add, size: 16, color: AC.text),
                   ),
                 ),
               ],
             ),
             const Spacer(),
-            Text(category.name, style: GoogleFonts.inter(fontSize: 14, fontWeight: FontWeight.w600, color: AC.text)),
+            Text(category.name, style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, color: AC.text)),
             const SizedBox(height: 4),
-            Text(fmtAmount(total), style: GoogleFonts.dmSans(fontSize: 20, fontWeight: FontWeight.bold, color: AC.text)),
+            Text(fmtAmount(total), style: GoogleFonts.dmSans(fontSize: 20, fontWeight: FontWeight.w600, color: AC.text)),
             if (category.budget != null) ...[
               const SizedBox(height: 6),
               ClipRRect(

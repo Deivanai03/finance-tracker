@@ -39,8 +39,8 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     Color(0xFFFFF0D6), Color(0xFFD6EAFF), Color(0xFFFFE4F0),
   ];
   static const _darkTints = [
-    Color(0xFF1E0A2E), Color(0xFF1E0A2E), Color(0xFF1E0A2E),
-    Color(0xFF1E0A2E), Color(0xFF1E0A2E), Color(0xFF1E0A2E),
+    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
+    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
   ];
   List<Color> get _pastelTints => themeNotifier.value ? _darkTints : _lightTints;
 
@@ -48,9 +48,6 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget build(BuildContext context) {
     final monthTotal = ExpenseService.getMonthTotal(_selectedMonth);
     final avgDaily = ExpenseService.getAverageDailySpendForMonth(_selectedMonth);
-    final highestDay = ExpenseService.getHighestSpendDayForMonth(_selectedMonth);
-    final topCategoryId = ExpenseService.getTopCategoryIdForMonth(_selectedMonth);
-    final topCategory = topCategoryId == -1 ? null : CategoryService.getCategoryById(topCategoryId);
 
     final categoryIdTotals = ExpenseService.getCategoryWiseTotalsForMonth(_selectedMonth);
     final dailyTotals = ExpenseService.getDailySpendingForMonth(_selectedMonth);
@@ -89,7 +86,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
                   ),
                   child: Text(
                     DateFormat('MMMM yyyy').format(_selectedMonth),
-                    style: GoogleFonts.inter(fontSize: 15, fontWeight: FontWeight.w600, color: AC.text),
+                    style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: AC.text),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -111,20 +108,15 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               const SizedBox(width: 12),
               Expanded(child: _statCard('Avg / Day', avgDaily, AC.primary)),
             ]),
-            const SizedBox(height: 12),
-            Row(children: [
-              Expanded(child: _statCard('Highest Day', highestDay, AC.primary)),
-              const SizedBox(width: 12),
-              Expanded(child: _topCatCard(topCategory == null ? 'None' : '${topCategory.emoji} ${topCategory.name}')),
-            ]),
 
             if (entries.isEmpty) ...[
               const SizedBox(height: 60),
-              Center(child: Column(children: [
-                const Text('🌸', style: TextStyle(fontSize: 48)),
-                const SizedBox(height: 12),
-                Text('No expenses this month', style: GoogleFonts.inter(color: AC.textLight, fontSize: 15)),
+              const Center(child: Column(children: [
+                SizedBox(height: 60),
+                Text('🌸', style: TextStyle(fontSize: 48)),
+                SizedBox(height: 12),
               ])),
+              Center(child: Text('No expenses this month', style: GoogleFonts.inter(color: AC.textLight, fontSize: 15))),
             ] else ...[
               const SizedBox(height: 32),
               Text('Spending by Category', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w600, color: AC.text)),
@@ -179,26 +171,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
         children: [
           Text(title, style: GoogleFonts.inter(fontSize: 12, color: AC.textLight)),
           const SizedBox(height: 6),
-          CountUpText(value, style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.bold, color: AC.text)),
-        ],
-      ),
-    );
-  }
-
-  Widget _topCatCard(String value) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AC.primary,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: AC.primary.withValues(alpha: 0.5), blurRadius: 12, offset: const Offset(0, 4))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Top Category', style: GoogleFonts.inter(fontSize: 12, color: AC.textLight)),
-          const SizedBox(height: 6),
-          Text(value, style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.bold, color: AC.text), maxLines: 1, overflow: TextOverflow.ellipsis),
+          CountUpText(value, style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.w600, color: AC.text)),
         ],
       ),
     );
@@ -252,7 +225,7 @@ class _AnimatedBubbleState extends State<AnimatedBubble> with SingleTickerProvid
             Text(widget.emoji, style: TextStyle(fontSize: widget.size * 0.28)),
             const SizedBox(height: 2),
             Text('₹${widget.amount.toStringAsFixed(0)}',
-                style: GoogleFonts.dmSans(fontSize: widget.size * 0.13, fontWeight: FontWeight.bold, color: AC.text),
+                style: GoogleFonts.dmSans(fontSize: widget.size * 0.13, fontWeight: FontWeight.w600, color: AC.text),
                 maxLines: 1, overflow: TextOverflow.ellipsis),
             if (widget.size > 90)
               Text(widget.name,

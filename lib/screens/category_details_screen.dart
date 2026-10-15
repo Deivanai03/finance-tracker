@@ -118,7 +118,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> with Sing
     return AlertDialog(
       backgroundColor: AC.card,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Text(title, style: GoogleFonts.outfit(color: AC.text, fontWeight: FontWeight.bold)),
+      title: Text(title, style: GoogleFonts.inter(color: AC.text, fontWeight: FontWeight.bold)),
       content: Text(content, style: GoogleFonts.inter(color: AC.textLight)),
       actions: actions,
     );
@@ -129,8 +129,8 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> with Sing
     Color(0xFFFFF0D6), Color(0xFFD6EAFF), Color(0xFFFFE4F0),
   ];
   static const _darkTints = [
-    Color(0xFF1E0A2E), Color(0xFF1E0A2E), Color(0xFF1E0A2E),
-    Color(0xFF1E0A2E), Color(0xFF1E0A2E), Color(0xFF1E0A2E),
+    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
+    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
   ];
   List<Color> get _pastelTints => themeNotifier.value ? _darkTints : _lightTints;
 

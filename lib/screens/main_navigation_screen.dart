@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../main.dart';
 import 'analytics_screen.dart';
@@ -89,7 +90,7 @@ class _NavItem extends StatelessWidget {
             Icon(icon, color: selected ? AC.text : AC.textLight, size: 22),
             if (selected) ...[
               const SizedBox(width: 6),
-              Text(label, style: TextStyle(color: AC.text, fontWeight: FontWeight.w600, fontSize: 13)),
+              Text(label, style: GoogleFonts.inter(color: AC.text, fontWeight: FontWeight.w600, fontSize: 13)),
             ],
           ],
         ),

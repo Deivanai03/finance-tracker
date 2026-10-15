@@ -1,5 +1,6 @@
 import 'package:hive/hive.dart';
 import '../models/expense.dart';
+import 'settings_service.dart';
 
 class ExpenseService {
   static Box<Expense> get _box => Hive.box<Expense>('expenses');
@@ -24,12 +25,14 @@ class ExpenseService {
     required double amount,
     required int categoryId,
     String? note,
+    DateTime? createdAt,
   }) async {
     final expense = _box.get(key);
     if (expense == null) return;
     expense.amount = amount;
     expense.categoryId = categoryId;
     expense.note = note;
+    if (createdAt != null) expense.createdAt = createdAt;
     await expense.save();
   }
 
@@ -205,4 +208,22 @@ class ExpenseService {
     if (totals.isEmpty) return -1;
     return totals.entries.reduce((a, b) => a.value > b.value ? a : b).key;
   }
+
+  // ================= CYCLE-AWARE TOTALS =================
+
+  static List<Expense> _filterByCycle(List<Expense> expenses) {
+    final start = SettingsService.cycleStart;
+    final end = SettingsService.cycleEnd;
+    return expenses.where((e) {
+      return !e.createdAt.isBefore(start) && !e.createdAt.isAfter(end);
+    }).toList();
+  }
+
+  /// Total spent in the current salary cycle.
+  static double getCurrentCycleTotal() =>
+      _sum(_filterByCycle(getAllExpenses()));
+
+  /// Total spent in the current salary cycle for a specific category.
+  static double getCurrentCycleCategoryTotal(int categoryId) =>
+      _sum(_filterByCycle(getExpensesByCategory(categoryId)));
 }

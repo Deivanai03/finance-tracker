@@ -1,0 +1,24 @@
+{
+  "verdict": "APPROVED",
+  "findings": [
+    {
+      "id": "happyTears-dead-code",
+      "blocking": false,
+      "summary": "MochiMood.happyTears is defined and mapped to assets/mochi/happy-tears.svg but has no call site anywhere in the app — the asset path is untested. Either wire it in or remove the enum value and comment.",
+      "location": "lib/widgets/mochi_widget.dart:10,33"
+    },
+    {
+      "id": "spacemono-w600",
+      "blocking": false,
+      "summary": "GoogleFonts.spaceMono(fontWeight: FontWeight.w600) is used in edit_category_sheet.dart:102, add_recurring_sheet.dart:117+163, add_goal_sheet.dart:107. Space Mono ships only Regular (400) and Bold (700); w600 silently falls back to 400, rendering currency prefix labels lighter than intended. Pre-existing from b2e0499, unaddressed in this commit. Change to FontWeight.w700 or FontWeight.normal.",
+      "location": "lib/widgets/edit_category_sheet.dart:102, lib/widgets/add_recurring_sheet.dart:117,163, lib/widgets/add_goal_sheet.dart:107"
+    },
+    {
+      "id": "nav-shadow-invisible-dark",
+      "blocking": false,
+      "summary": "main_navigation_screen.dart:44 uses AC.primary (#231D30) for the nav bar drop shadow. In the new dark palette AC.primary is nearly identical to AC.bg (#1A1625), making the shadow invisible and flattening the floating pill in dark mode. The border was correctly migrated to AC.accent in this commit; the shadow should follow. Fix: BoxShadow(color: AC.accent.withValues(alpha: 0.2), ...).",
+      "location": "lib/screens/main_navigation_screen.dart:44"
+    }
+  ],
+  "reviewDoc": "/home/deiva/development/mobile-app/finance-tracker/.agents/tasks/review.md"
+}

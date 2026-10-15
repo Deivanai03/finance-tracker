@@ -99,7 +99,7 @@ class _EditCategorySheetState extends State<EditCategorySheet> {
               labelText: 'Monthly Budget (optional)',
               labelStyle: GoogleFonts.inter(color: AC.textLight, fontSize: 13),
               prefixText: '₹ ',
-              prefixStyle: GoogleFonts.dmSans(color: AC.accent, fontWeight: FontWeight.w600),
+              prefixStyle: GoogleFonts.dmSans(color: AC.accent, fontWeight: FontWeight.bold),
               border: _border(), enabledBorder: _border(), focusedBorder: _border(AC.accent),
               filled: true, fillColor: AC.card,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

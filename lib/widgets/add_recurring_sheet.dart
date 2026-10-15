@@ -91,7 +91,7 @@ class _AddRecurringSheetState extends State<AddRecurringSheet> {
           Container(width: 36, height: 4, decoration: BoxDecoration(color: AC.accent.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 24),
           Text(isEdit ? 'Edit Recurring' : 'New Recurring',
-              style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: AC.text)),
+              style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold, color: AC.text)),
           const SizedBox(height: 24),
           TextField(
             controller: nameController,
@@ -114,7 +114,7 @@ class _AddRecurringSheetState extends State<AddRecurringSheet> {
               labelText: 'Amount',
               labelStyle: GoogleFonts.inter(color: AC.textLight, fontSize: 13),
               prefixText: '₹ ',
-              prefixStyle: GoogleFonts.dmSans(color: AC.accent, fontWeight: FontWeight.w600),
+              prefixStyle: GoogleFonts.dmSans(color: AC.accent, fontWeight: FontWeight.bold),
               border: _border(), enabledBorder: _border(), focusedBorder: _border(AC.accent),
               filled: true, fillColor: AC.card,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
@@ -160,7 +160,7 @@ class _AddRecurringSheetState extends State<AddRecurringSheet> {
                     dropdownColor: AC.card,
                     items: List.generate(28, (i) => DropdownMenuItem(
                       value: i + 1,
-                      child: Text(_ordinal(i + 1), style: GoogleFonts.dmSans(color: AC.text, fontWeight: FontWeight.w600)),
+                      child: Text(_ordinal(i + 1), style: GoogleFonts.dmSans(color: AC.text, fontWeight: FontWeight.bold)),
                     )),
                     onChanged: (v) => setState(() => selectedDay = v!),
                   ),

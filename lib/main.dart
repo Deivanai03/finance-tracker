@@ -81,14 +81,14 @@ class AppColors {
   );
 
   static const dark = AppColors._(
-    bg: Color(0xFF0A0A0F),        // near-black, deep space
-    primary: Color(0xFF1A0A2E),   // deep gothic purple
-    accent: Color(0xFF7B35CC),    // dark violet (toned down)
-    secondary: Color(0xFF0D1F2D), // dark teal-black
-    card: Color(0xFF12101A),      // dark purple-black card
-    success: Color(0xFF00FFB2),   // neon mint green
-    text: Color(0xFFCCB8E8),      // muted lavender (less bright)
-    textLight: Color(0xFF7B6B9A), // muted purple-grey
+    bg: Color(0xFF0F1117),
+    primary: Color(0xFF222535),
+    accent: Color(0xFFCBA8F0),
+    secondary: Color(0xFF1E2230),
+    card: Color(0xFF1A1D27),
+    success: Color(0xFF7EC8A0),
+    text: Color(0xFFE8EAF0),
+    textLight: Color(0xFF7A7F99),
   );
 }
 

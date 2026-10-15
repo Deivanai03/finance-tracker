@@ -69,7 +69,7 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
           Container(width: 36, height: 4, decoration: BoxDecoration(color: AC.accent.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(2))),
           const SizedBox(height: 24),
           Text(isEdit ? 'Edit Goal' : 'New Goal ✨',
-              style: GoogleFonts.outfit(fontSize: 22, fontWeight: FontWeight.bold, color: AC.text)),
+              style: GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold, color: AC.text)),
           const SizedBox(height: 24),
           TextField(
             controller: emojiController,
@@ -104,7 +104,7 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
               labelText: 'Target Amount',
               labelStyle: GoogleFonts.inter(color: AC.textLight, fontSize: 13),
               prefixText: '₹ ',
-              prefixStyle: GoogleFonts.dmSans(color: AC.accent, fontWeight: FontWeight.w600),
+              prefixStyle: GoogleFonts.dmSans(color: AC.accent, fontWeight: FontWeight.bold),
               border: _border(), enabledBorder: _border(), focusedBorder: _border(AC.accent),
               filled: true, fillColor: AC.card,
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),

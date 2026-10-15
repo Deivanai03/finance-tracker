@@ -23,8 +23,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
     Color(0xFFFFF0D6), Color(0xFFD6EAFF), Color(0xFFFFE4F0),
   ];
   static const _darkCardColors = [
-    Color(0xFF1E0A2E), Color(0xFF1E0A2E), Color(0xFF1E0A2E),
-    Color(0xFF1E0A2E), Color(0xFF1E0A2E), Color(0xFF1E0A2E),
+    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
+    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
   ];
   List<Color> get _cardColors => themeNotifier.value ? _darkCardColors : _lightCardColors;
 
@@ -126,7 +126,6 @@ class _WishlistScreenState extends State<WishlistScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text('Wishlist', style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: AC.text)),
-                            Text('Your savings goals ✨', style: GoogleFonts.inter(fontSize: 13, color: AC.textLight)),
                           ],
                         ),
                         GestureDetector(
@@ -157,7 +156,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                       child: Column(mainAxisSize: MainAxisSize.min, children: [
                         const Text('🛍️', style: TextStyle(fontSize: 56)),
                         const SizedBox(height: 16),
-                        Text('Your wishlist is empty', style: GoogleFonts.outfit(fontSize: 18, color: AC.text)),
+                        Text('Your wishlist is empty', style: GoogleFonts.inter(fontSize: 18, color: AC.text)),
                         const SizedBox(height: 8),
                         Text('Add something you\'re saving for', style: GoogleFonts.inter(fontSize: 13, color: AC.textLight)),
                       ]),
@@ -216,7 +215,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(goal.name, style: GoogleFonts.outfit(fontSize: 18, fontWeight: FontWeight.bold, color: AC.text)),
+                    Text(goal.name, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AC.text)),
                     Text(
                       isComplete ? '🎉 Goal reached!' : '${fmtAmount(remaining)} to go',
                       style: GoogleFonts.inter(fontSize: 12, color: isComplete ? AC.text : AC.textLight),
@@ -234,8 +233,29 @@ class _WishlistScreenState extends State<WishlistScreen> {
               const SizedBox(width: 8),
               GestureDetector(
                 onTap: () async {
-                  await SavingsGoalService.delete(goal.key as int);
-                  setState(() {});
+                  final confirmed = await showDialog<bool>(
+                    context: context,
+                    builder: (_) => AlertDialog(
+                      backgroundColor: AC.card,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      title: Text('Delete "${goal.name}"?', style: GoogleFonts.inter(color: AC.text, fontWeight: FontWeight.bold)),
+                      content: Text('This goal and its saved amount will be removed.', style: GoogleFonts.inter(color: AC.textLight)),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: Text('Cancel', style: GoogleFonts.inter(color: AC.textLight)),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          child: Text('Delete', style: GoogleFonts.inter(color: Colors.red[400], fontWeight: FontWeight.w600)),
+                        ),
+                      ],
+                    ),
+                  ) ?? false;
+                  if (confirmed) {
+                    await SavingsGoalService.delete(goal.key as int);
+                    setState(() {});
+                  }
                 },
                 child: Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red[300]),
               ),

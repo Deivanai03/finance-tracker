@@ -43,6 +43,25 @@ class _SettingsScreenState extends State<SettingsScreen> {
     FocusScope.of(context).unfocus();
   }
 
+  void _pickSalaryDate() {
+    final current = SettingsService.salaryDate;
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (_) => _SalaryDatePicker(
+        current: current,
+        onSelected: (day) {
+          SettingsService.salaryDate = day;
+          setState(() {});
+        },
+        onCleared: () {
+          SettingsService.salaryDate = null;
+          setState(() {});
+        },
+      ),
+    );
+  }
+
   Future<void> _addOrEditIncome([Income? existing]) async {
     await showModalBottomSheet(
       context: context,
@@ -59,7 +78,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (_) => AlertDialog(
         backgroundColor: AC.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Delete income?', style: GoogleFonts.outfit(color: AC.text, fontWeight: FontWeight.bold)),
+        title: Text('Delete income?', style: GoogleFonts.inter(color: AC.text, fontWeight: FontWeight.bold)),
         content: Text('This cannot be undone.', style: GoogleFonts.inter(color: AC.textLight)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
@@ -151,6 +170,59 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       ),
                     ],
                   ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              // Salary date tile
+              GestureDetector(
+                onTap: _pickSalaryDate,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(color: AC.card, borderRadius: BorderRadius.circular(16)),
+                  child: Row(
+                    children: [
+                      Icon(Icons.event_repeat_rounded, color: AC.accent, size: 22),
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Salary Date', style: GoogleFonts.inter(color: AC.text, fontSize: 15)),
+                            Text(
+                              'Home screen resets on this day each month',
+                              style: GoogleFonts.inter(color: AC.textLight, fontSize: 11),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Builder(builder: (_) {
+                        final d = SettingsService.salaryDate;
+                        return Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            if (d != null)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: AC.accent.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AC.accent.withValues(alpha: 0.3)),
+                                ),
+                                child: Text(
+                                  _ordinal(d),
+                                  style: GoogleFonts.dmSans(fontSize: 13, fontWeight: FontWeight.bold, color: AC.accent),
+                                ),
+                              )
+                            else
+                              Text('Not set', style: GoogleFonts.inter(fontSize: 13, color: AC.textLight)),
+                            const SizedBox(width: 6),
+                            Icon(Icons.chevron_right_rounded, size: 18, color: AC.textLight),
+                          ],
+                        );
+                      }),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -259,3 +331,171 @@ class _SettingsTile extends StatelessWidget {
     );
   }
 }
+
+String _ordinal(int n) {
+  if (n >= 11 && n <= 13) return '${n}th';
+  switch (n % 10) {
+    case 1: return '${n}st';
+    case 2: return '${n}nd';
+    case 3: return '${n}rd';
+    default: return '${n}th';
+  }
+}
+
+class _SalaryDatePicker extends StatefulWidget {
+  final int? current;
+  final ValueChanged<int> onSelected;
+  final VoidCallback onCleared;
+
+  const _SalaryDatePicker({
+    required this.current,
+    required this.onSelected,
+    required this.onCleared,
+  });
+
+  @override
+  State<_SalaryDatePicker> createState() => _SalaryDatePickerState();
+}
+
+class _SalaryDatePickerState extends State<_SalaryDatePicker> {
+  int? _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = widget.current;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AC.bg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 36, height: 4,
+            decoration: BoxDecoration(
+              color: AC.accent.withValues(alpha: 0.4),
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            'Salary Date',
+            style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AC.text),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Pick the day your salary is credited each month',
+            style: GoogleFonts.inter(fontSize: 12, color: AC.textLight),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 20),
+          // 4-column grid of day buttons 1–28
+          GridView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              childAspectRatio: 1,
+            ),
+            itemCount: 28,
+            itemBuilder: (_, index) {
+              final day = index + 1;
+              final isSelected = _selected == day;
+              return GestureDetector(
+                onTap: () => setState(() => _selected = day),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 150),
+                  decoration: BoxDecoration(
+                    color: isSelected ? AC.accent : AC.card,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: isSelected ? AC.accent : AC.accent.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    '$day',
+                    style: GoogleFonts.dmSans(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected ? AC.bg : AC.text,
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              if (widget.current != null)
+                Expanded(
+                  child: GestureDetector(
+                    onTap: () {
+                      Navigator.pop(context);
+                      widget.onCleared();
+                    },
+                    child: Container(
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: AC.card,
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: AC.accent.withValues(alpha: 0.3)),
+                      ),
+                      alignment: Alignment.center,
+                      child: Text('Clear', style: GoogleFonts.inter(fontSize: 15, color: AC.textLight)),
+                    ),
+                  ),
+                ),
+              if (widget.current != null) const SizedBox(width: 12),
+              Expanded(
+                flex: 2,
+                child: GestureDetector(
+                  onTap: () {
+                    if (_selected != null) {
+                      Navigator.pop(context);
+                      widget.onSelected(_selected!);
+                    }
+                  },
+                  child: Container(
+                    height: 50,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [AC.accent, AC.primary],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(color: AC.accent.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4)),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      _selected != null ? 'Set to ${_ordinal(_selected!)}' : 'Select a day',
+                      style: GoogleFonts.inter(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: _selected != null ? AC.bg : AC.textLight,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+

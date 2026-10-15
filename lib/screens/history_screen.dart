@@ -9,6 +9,7 @@ import '../models/expense.dart';
 import '../services/category_service.dart';
 import '../services/expense_service.dart';
 import '../utils/format.dart';
+
 enum _SortOrder { dateDesc, dateAsc, amountDesc, amountAsc }
 
 class HistoryScreen extends StatefulWidget {
@@ -22,7 +23,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   int? selectedCategoryId;
   String selectedMonth = 'All';
   String searchQuery = '';
-  String? selectedTag;
   _SortOrder sortOrder = _SortOrder.dateDesc;
   final _searchController = TextEditingController();
 
@@ -39,17 +39,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     final months = ['All', ...allExpenses.map((e) => DateFormat('MMMM yyyy').format(e.createdAt)).toSet()];
 
-    // Collect all unique tags
-    final allTags = <String>{};
-    for (final e in allExpenses) {
-      allTags.addAll(parseTags(e.note));
-    }
-
     var filtered = allExpenses.where((expense) {
       final catMatch = selectedCategoryId == null || expense.categoryId == selectedCategoryId;
       if (!catMatch) return false;
       if (selectedMonth != 'All' && DateFormat('MMMM yyyy').format(expense.createdAt) != selectedMonth) return false;
-      if (selectedTag != null && !parseTags(expense.note).contains(selectedTag)) return false;
       if (searchQuery.isNotEmpty) {
         final q = searchQuery.toLowerCase();
         final note = expense.note?.toLowerCase() ?? '';
@@ -146,34 +139,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ],
               ),
             ),
-            // Tag filter chips
-            if (allTags.isNotEmpty)
-              SizedBox(
-                height: 36,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                  children: allTags.map((tag) {
-                    final selected = selectedTag == tag;
-                    return Padding(
-                      padding: const EdgeInsets.only(right: 8),
-                      child: GestureDetector(
-                        onTap: () => setState(() => selectedTag = selected ? null : tag),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: selected ? AC.accent : AC.card,
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: selected ? AC.accent : AC.accent.withValues(alpha: 0.3)),
-                          ),
-                          child: Text('#$tag', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? AC.text : AC.textLight)),
-                        ),
-                      ),
-                    );
-                  }).toList(),
-                ),
-              ),
             // Total bar
             if (filtered.isNotEmpty)
               Padding(
@@ -190,7 +155,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       Text('${filtered.length} expense${filtered.length == 1 ? '' : 's'}',
                           style: GoogleFonts.inter(fontSize: 13, color: AC.textLight)),
                       Text(fmtAmount(total),
-                          style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.bold, color: AC.text)),
+                          style: GoogleFonts.dmSans(fontSize: 15, fontWeight: FontWeight.w600, color: AC.text)),
                     ],
                   ),
                 ),
@@ -232,24 +197,66 @@ class _HistoryScreenState extends State<HistoryScreen> {
   }
 
   Widget _sortButton() {
-    final labels = {
-      _SortOrder.dateDesc: 'Date ↓',
-      _SortOrder.dateAsc: 'Date ↑',
-      _SortOrder.amountDesc: 'Amount ↓',
-      _SortOrder.amountAsc: 'Amount ↑',
+    const labels = {
+      _SortOrder.dateDesc: 'Date (Newest first)',
+      _SortOrder.dateAsc: 'Date (Oldest first)',
+      _SortOrder.amountDesc: 'Amount (High to low)',
+      _SortOrder.amountAsc: 'Amount (Low to high)',
     };
-    return GestureDetector(
-      onTap: () {
-        final orders = _SortOrder.values;
-        setState(() => sortOrder = orders[(orders.indexOf(sortOrder) + 1) % orders.length]);
-      },
+    const icons = {
+      _SortOrder.dateDesc: Icons.arrow_downward_rounded,
+      _SortOrder.dateAsc: Icons.arrow_upward_rounded,
+      _SortOrder.amountDesc: Icons.arrow_downward_rounded,
+      _SortOrder.amountAsc: Icons.arrow_upward_rounded,
+    };
+    return PopupMenuButton<_SortOrder>(
+      onSelected: (order) => setState(() => sortOrder = order),
+      color: AC.card,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      offset: const Offset(0, 40),
+      itemBuilder: (_) => _SortOrder.values.map((order) {
+        final isSelected = sortOrder == order;
+        return PopupMenuItem<_SortOrder>(
+          value: order,
+          child: Row(
+            children: [
+              Icon(icons[order], size: 16, color: isSelected ? AC.accent : AC.textLight),
+              const SizedBox(width: 10),
+              Text(
+                labels[order]!,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                  color: isSelected ? AC.accent : AC.text,
+                ),
+              ),
+              if (isSelected) ...[
+                const Spacer(),
+                Icon(Icons.check_rounded, size: 16, color: AC.accent),
+              ],
+            ],
+          ),
+        );
+      }).toList(),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: AC.secondary,
+          color: AC.primary,
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Text(labels[sortOrder]!, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AC.text)),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.sort_rounded, size: 14, color: AC.text),
+            const SizedBox(width: 5),
+            Text(
+              sortOrder == _SortOrder.dateDesc || sortOrder == _SortOrder.dateAsc ? 'Date' : 'Amount',
+              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AC.text),
+            ),
+            const SizedBox(width: 3),
+            Icon(Icons.expand_more_rounded, size: 14, color: AC.textLight),
+          ],
+        ),
       ),
     );
   }
@@ -314,7 +321,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         decoration: BoxDecoration(
           color: AC.card,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: AC.primary.withValues(alpha: 0.5), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: AC.primary.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
@@ -324,7 +331,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
             alignment: Alignment.center,
             child: Text(category?.emoji ?? '💰', style: const TextStyle(fontSize: 22)),
           ),
-          title: Text(fmtAmount(expense.amount), style: GoogleFonts.dmSans(fontWeight: FontWeight.bold, color: AC.text, fontSize: 16)),
+          title: Text(fmtAmount(expense.amount), style: GoogleFonts.dmSans(fontWeight: FontWeight.w600, color: AC.text, fontSize: 16)),
           subtitle: Text(
             [category?.name ?? 'Unknown', if (expense.note?.isNotEmpty == true) expense.note!].join(' · '),
             style: GoogleFonts.inter(color: AC.textLight, fontSize: 12),
