@@ -23,6 +23,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
   int? selectedCategoryId;
   String selectedMonth = 'All';
   String searchQuery = '';
+  String? selectedTag;
   _SortOrder sortOrder = _SortOrder.dateDesc;
   final _searchController = TextEditingController();
 
@@ -37,12 +38,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
     final categories = CategoryService.getAllCategories();
     final allExpenses = ExpenseService.getAllExpensesSorted();
 
+    // Collect all unique tags from notes
+    final allTags = <String>{};
+    for (final e in allExpenses) {
+      allTags.addAll(parseTags(e.note));
+    }
+
     final months = ['All', ...allExpenses.map((e) => DateFormat('MMMM yyyy').format(e.createdAt)).toSet()];
 
     var filtered = allExpenses.where((expense) {
       final catMatch = selectedCategoryId == null || expense.categoryId == selectedCategoryId;
       if (!catMatch) return false;
       if (selectedMonth != 'All' && DateFormat('MMMM yyyy').format(expense.createdAt) != selectedMonth) return false;
+      if (selectedTag != null && !parseTags(expense.note).contains(selectedTag)) return false;
       if (searchQuery.isNotEmpty) {
         final q = searchQuery.toLowerCase();
         final note = expense.note?.toLowerCase() ?? '';
@@ -139,6 +147,34 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 ],
               ),
             ),
+            // Tag filter chips
+            if (allTags.isNotEmpty)
+              SizedBox(
+                height: 36,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                  children: allTags.map((tag) {
+                    final selected = selectedTag == tag;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: GestureDetector(
+                        onTap: () => setState(() => selectedTag = selected ? null : tag),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: selected ? AC.accent : AC.card,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: selected ? AC.accent : AC.accent.withValues(alpha: 0.3)),
+                          ),
+                          child: Text('#$tag', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: selected ? AC.text : AC.textLight)),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
             // Total bar
             if (filtered.isNotEmpty)
               Padding(

@@ -48,6 +48,9 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
   Widget build(BuildContext context) {
     final monthTotal = ExpenseService.getMonthTotal(_selectedMonth);
     final avgDaily = ExpenseService.getAverageDailySpendForMonth(_selectedMonth);
+    final highestDay = ExpenseService.getHighestSpendDayForMonth(_selectedMonth);
+    final topCategoryId = ExpenseService.getTopCategoryIdForMonth(_selectedMonth);
+    final topCategory = topCategoryId == -1 ? null : CategoryService.getCategoryById(topCategoryId);
 
     final categoryIdTotals = ExpenseService.getCategoryWiseTotalsForMonth(_selectedMonth);
     final dailyTotals = ExpenseService.getDailySpendingForMonth(_selectedMonth);
@@ -108,15 +111,20 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
               const SizedBox(width: 12),
               Expanded(child: _statCard('Avg / Day', avgDaily, AC.primary)),
             ]),
+            const SizedBox(height: 12),
+            Row(children: [
+              Expanded(child: _statCard('Highest Day', highestDay, AC.primary)),
+              const SizedBox(width: 12),
+              Expanded(child: _topCatCard(topCategory == null ? 'None' : '${topCategory.emoji} ${topCategory.name}')),
+            ]),
 
             if (entries.isEmpty) ...[
               const SizedBox(height: 60),
-              const Center(child: Column(children: [
-                SizedBox(height: 60),
-                Text('🌸', style: TextStyle(fontSize: 48)),
-                SizedBox(height: 12),
+              Center(child: Column(mainAxisSize: MainAxisSize.min, children: [
+                const Text('🌸', style: TextStyle(fontSize: 48)),
+                const SizedBox(height: 12),
+                Text('No expenses this month', style: GoogleFonts.inter(color: AC.textLight, fontSize: 15)),
               ])),
-              Center(child: Text('No expenses this month', style: GoogleFonts.inter(color: AC.textLight, fontSize: 15))),
             ] else ...[
               const SizedBox(height: 32),
               Text('Spending by Category', style: GoogleFonts.outfit(fontSize: 20, fontWeight: FontWeight.w600, color: AC.text)),
@@ -172,6 +180,25 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
           Text(title, style: GoogleFonts.inter(fontSize: 12, color: AC.textLight)),
           const SizedBox(height: 6),
           CountUpText(value, style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.w600, color: AC.text)),
+        ],
+      ),
+    );
+  }
+
+  Widget _topCatCard(String value) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AC.primary,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: AC.primary.withValues(alpha: 0.5), blurRadius: 12, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Top Category', style: GoogleFonts.inter(fontSize: 12, color: AC.textLight)),
+          const SizedBox(height: 6),
+          Text(value, style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.w600, color: AC.text), maxLines: 1, overflow: TextOverflow.ellipsis),
         ],
       ),
     );
