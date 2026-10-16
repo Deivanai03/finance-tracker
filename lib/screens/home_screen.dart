@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:confetti/confetti.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -580,8 +578,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       ),
     );
   }
-
-
   Widget _buildCategoryCard(BuildContext context, Category category, int index) {
     final categoryId = category.key as int;
     final total = ExpenseService.getCurrentCycleCategoryTotal(categoryId);
