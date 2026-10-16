@@ -139,7 +139,7 @@ class _ManageRecurringScreenState extends State<ManageRecurringScreen> {
       child: Container(
         margin: const EdgeInsets.only(bottom: 10),
         decoration: BoxDecoration(
-          color: isOverdue ? const Color(0xFFFFE4E4) : AC.secondary.withValues(alpha: 0.45),
+          color: isOverdue ? const Color(0xFFFFE4E4) : AC.card.withValues(alpha: 0.45),
           borderRadius: BorderRadius.circular(18),
         ),
         child: ListTile(

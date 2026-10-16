@@ -29,7 +29,6 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
-  late final AnimationController _sparkleController;
   late final AnimationController _heroController;
   late final Animation<double> _heroFade;
   late final ConfettiController _confettiCtrl;
@@ -38,20 +37,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   // Ordered list of category keys; null = use default (most-used) sort
   List<int>? _customOrder;
 
-  static const _lightCardColors = [
-    Color(0xFFFDE8EE), Color(0xFFEADFFF), Color(0xFFDDEEE8),
-    Color(0xFFFFF0D6), Color(0xFFD6EAFF), Color(0xFFFFE4F0),
-  ];
-  static const _darkCardColors = [
-    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
-    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
-  ];
-  List<Color> get _cardBgColors => themeNotifier.value ? _darkCardColors : _lightCardColors;
-
   @override
   void initState() {
     super.initState();
-    _sparkleController = AnimationController(vsync: this, duration: const Duration(seconds: 3))..repeat(reverse: true);
     _heroController = AnimationController(vsync: this, duration: const Duration(milliseconds: 800))..forward();
     _heroFade = CurvedAnimation(parent: _heroController, curve: Curves.easeOut);
     _confettiCtrl = ConfettiController(duration: const Duration(seconds: 4));
@@ -72,7 +60,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
 
   @override
   void dispose() {
-    _sparkleController.dispose();
     _heroController.dispose();
     _confettiCtrl.dispose();
     super.dispose();
@@ -149,6 +136,19 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       SliverToBoxAdapter(child: _buildInsights(totalSpent)),
                       if (_reorderMode)
                         SliverToBoxAdapter(child: _buildReorderBanner()),
+                      if (!_reorderMode)
+                        SliverToBoxAdapter(
+                          child: Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text('Categories', style: GoogleFonts.outfit(fontSize: 16, fontWeight: FontWeight.w600, color: AC.text)),
+                                Text('bigger card = bigger spend', style: GoogleFonts.inter(fontSize: 12, color: AC.textLight)),
+                              ],
+                            ),
+                          ),
+                        ),
                       if (_reorderMode)
                         SliverToBoxAdapter(
                           child: _buildReorderableGrid(categories),
@@ -166,8 +166,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                             ),
                             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                               crossAxisCount: 2,
-                              crossAxisSpacing: 12,
-                              mainAxisSpacing: 12,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
                               childAspectRatio: 0.95,
                             ),
                           ),
@@ -184,7 +184,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                 confettiController: _confettiCtrl,
                 blastDirectionality: BlastDirectionality.explosive,
                 numberOfParticles: 40,
-                colors: [AC.accent, AC.success, AC.secondary, const Color(0xFFFFD700)],
+                colors: [AC.accent, AC.success, AC.primary, const Color(0xFFFFD700)],
                 shouldLoop: false,
               ),
             ),
@@ -272,7 +272,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
   Widget _buildDraggableCategoryCard(BuildContext context, Category category, int index, {required Key key}) {
     final categoryId = category.key as int;
     final total = ExpenseService.getCurrentCycleCategoryTotal(categoryId);
-    final bgColor = _cardBgColors[index % _cardBgColors.length];
+    final bgColor = AppColors.cardColors[index % AppColors.cardColors.length];
 
     return Padding(
       key: key,
@@ -281,7 +281,6 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(24),
-          boxShadow: [BoxShadow(color: bgColor.withValues(alpha: 0.6), blurRadius: 12, offset: const Offset(0, 4))],
         ),
         padding: const EdgeInsets.all(16),
         child: Row(
@@ -292,9 +291,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(category.name, style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: AC.text)),
+                  Text(category.name, style: GoogleFonts.outfit(fontSize: 15, fontWeight: FontWeight.w600, color: AC.textOnVivid)),
                   const SizedBox(height: 2),
-                  Text(fmtAmount(total), style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.w600, color: AC.text)),
+                  Text(fmtAmount(total), style: GoogleFonts.dmSans(fontSize: 18, fontWeight: FontWeight.w600, color: AC.textOnVivid)),
                   if (category.budget != null) ...[
                     const SizedBox(height: 6),
                     ClipRRect(
@@ -302,7 +301,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                       child: LinearProgressIndicator(
                         value: (total / category.budget!).clamp(0.0, 1.0),
                         minHeight: 4,
-                        backgroundColor: AC.text.withValues(alpha: 0.15),
+                        backgroundColor: Colors.white.withValues(alpha: 0.3),
                         valueColor: AlwaysStoppedAnimation(
                           total > category.budget! ? Colors.red[300]! : AC.accent,
                         ),
@@ -331,30 +330,22 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(_greeting(), style: GoogleFonts.inter(fontSize: 14, color: AC.textLight)),
+            Text(_greeting(), style: GoogleFonts.inter(fontSize: 13, color: AC.textLight)),
             const SizedBox(height: 4),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Finance Tracker', style: GoogleFonts.outfit(fontSize: 28, fontWeight: FontWeight.bold, color: AC.text)),
+                Text('Your month', style: GoogleFonts.outfit(fontSize: 32, fontWeight: FontWeight.bold, color: AC.text)),
                 Row(
                   children: [
-                    GestureDetector(
+                    _headerIconButton(
+                      icon: Icons.delete_sweep_rounded,
                       onTap: () => Navigator.push(context, fadeScaleRoute(const WishlistScreen())),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(color: AC.secondary, borderRadius: BorderRadius.circular(14)),
-                        child: const Text('🛍️', style: TextStyle(fontSize: 20)),
-                      ),
                     ),
                     const SizedBox(width: 8),
-                    GestureDetector(
+                    _headerIconButton(
+                      icon: Icons.tune_rounded,
                       onTap: () => Navigator.push(context, fadeScaleRoute(const SettingsScreen())),
-                      child: Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(color: AC.secondary, borderRadius: BorderRadius.circular(14)),
-                        child: Icon(Icons.settings_rounded, size: 20, color: AC.textLight),
-                      ),
                     ),
                   ],
                 ),
@@ -372,6 +363,21 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
+  Widget _headerIconButton({required IconData icon, required VoidCallback onTap}) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        width: 36,
+        height: 36,
+        decoration: BoxDecoration(
+          color: AC.card,
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Icon(icon, size: 18, color: AC.textLight),
+      ),
+    );
+  }
+
   Widget _buildHeroCard(double totalSpent, double totalIncome, double? budget) {
     final hasBudget = budget != null && budget > 0;
     final budgetProgress = hasBudget ? (totalSpent / budget).clamp(0.0, 1.0) : 0.0;
@@ -384,56 +390,76 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
         ? '${DateFormat('dd MMM').format(cycleStart)} – ${DateFormat('dd MMM').format(cycleEnd)}'
         : 'This month';
 
-    return AnimatedBuilder(
-      animation: _sparkleController,
-      builder: (context, child) {
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [AC.primary, AC.accent.withValues(alpha: 0.6)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
+    return Container(
+      width: double.infinity,
+      height: 160,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AC.hero,
+        borderRadius: BorderRadius.circular(24),
+      ),
+      child: Stack(
+        children: [
+          // Decorative circle — coral, top-right
+          Positioned(
+            top: -20,
+            right: -20,
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: const BoxDecoration(
+                color: Color(0xFFFF6B6B),
+                shape: BoxShape.circle,
+              ),
             ),
-            borderRadius: BorderRadius.circular(32),
-            boxShadow: [BoxShadow(color: AC.accent.withValues(alpha: 0.3), blurRadius: 24, offset: const Offset(0, 8))],
           ),
-          child: Stack(
+          // Decorative circle — purple, center-right
+          Positioned(
+            top: 30,
+            right: 50,
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFFC77DFF).withValues(alpha: 0.85),
+                shape: BoxShape.circle,
+              ),
+            ),
+          ),
+          // Content
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              ..._buildSparkles(),
+              Text(cycleLabel, style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF9CA3AF))),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(cycleLabel, style: GoogleFonts.inter(fontSize: 13, color: AC.textLight)),
-                  const SizedBox(height: 8),
                   CountUpText(
                     totalSpent,
-                    style: GoogleFonts.dmSans(fontSize: 40, fontWeight: FontWeight.w600, color: AC.text),
+                    style: GoogleFonts.dmSans(fontSize: 36, fontWeight: FontWeight.bold, color: const Color(0xFFFFD93D)),
                   ),
-                  const SizedBox(height: 4),
-                  Text('total spent', style: GoogleFonts.inter(fontSize: 13, color: AC.textLight)),
                   if (hasBudget) ...[
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          overBudget ? '⚠️ Over budget' : 'Budget: ${fmtAmount(totalSpent)} / ${fmtAmount(budget)}',
-                          style: GoogleFonts.inter(fontSize: 12, color: overBudget ? Colors.red[400] : AC.textLight),
-                        ),
-                        Text('${(budgetProgress * 100).toStringAsFixed(0)}%',
-                            style: GoogleFonts.dmSans(fontSize: 12, fontWeight: FontWeight.w600, color: overBudget ? Colors.red[400] : AC.textLight)),
-                      ],
-                    ),
                     const SizedBox(height: 6),
                     ClipRRect(
-                      borderRadius: BorderRadius.circular(6),
+                      borderRadius: BorderRadius.circular(3),
                       child: LinearProgressIndicator(
                         value: budgetProgress,
                         minHeight: 6,
-                        backgroundColor: AC.textLight.withValues(alpha: 0.3),
-                        valueColor: AlwaysStoppedAnimation(overBudget ? Colors.red[300]! : AC.accent),
+                        backgroundColor: Colors.white.withValues(alpha: 0.15),
+                        valueColor: AlwaysStoppedAnimation(
+                          overBudget ? Colors.red[300]! : const Color(0xFFFF6B6B),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      overBudget
+                          ? '⚠️ Over budget'
+                          : 'Budget: ${fmtAmount(totalSpent)} / ${fmtAmount(budget)}',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: overBudget ? Colors.red[400] : const Color(0xFF9CA3AF),
                       ),
                     ),
                   ],
@@ -441,8 +467,8 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
               ),
             ],
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -479,7 +505,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       decoration: BoxDecoration(
-        color: AC.secondary.withValues(alpha: 0.5),
+        color: AC.card,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AC.accent.withValues(alpha: 0.2)),
       ),
@@ -541,7 +567,7 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
-          color: AC.primary.withValues(alpha: 0.5),
+          color: AC.card,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Row(
@@ -555,30 +581,11 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
     );
   }
 
-  List<Widget> _buildSparkles() {
-    final rng = Random(42);
-    return List.generate(5, (i) {
-      final x = rng.nextDouble() * 250 + 120;
-      final y = rng.nextDouble() * 60;
-      final size = 8.0 + rng.nextDouble() * 10;
-      return Positioned(
-        right: x - 120,
-        top: y,
-        child: AnimatedBuilder(
-          animation: _sparkleController,
-          builder: (_, __) => Opacity(
-            opacity: (0.3 + 0.5 * sin(_sparkleController.value * pi + i)).clamp(0.0, 1.0),
-            child: Text('✦', style: TextStyle(fontSize: size, color: AC.accent.withValues(alpha: 0.6))),
-          ),
-        ),
-      );
-    });
-  }
 
   Widget _buildCategoryCard(BuildContext context, Category category, int index) {
     final categoryId = category.key as int;
     final total = ExpenseService.getCurrentCycleCategoryTotal(categoryId);
-    final bgColor = _cardBgColors[index % _cardBgColors.length];
+    final bgColor = AppColors.cardColors[index % AppColors.cardColors.length];
 
     return GestureDetector(
       onTap: () => Navigator.push(
@@ -592,10 +599,9 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Container(
         decoration: BoxDecoration(
           color: bgColor,
-          borderRadius: BorderRadius.circular(24),
-          boxShadow: [BoxShadow(color: bgColor.withValues(alpha: 0.6), blurRadius: 12, offset: const Offset(0, 4))],
+          borderRadius: BorderRadius.circular(20),
         ),
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(14),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -620,36 +626,51 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
                   },
                   child: Material(
                     type: MaterialType.transparency,
-                    child: Text(category.emoji, style: const TextStyle(fontSize: 32, decoration: TextDecoration.none)),
+                    child: Text(category.emoji, style: const TextStyle(fontSize: 28, decoration: TextDecoration.none)),
                   ),
                 ),
                 GestureDetector(
                   onTap: () async {
                     HapticFeedback.lightImpact();
-                    await showModalBottomSheet(context: context, isScrollControlled: true, backgroundColor: Colors.transparent, builder: (_) => AddExpenseSheet(categoryId: categoryId));
+                    await showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (_) => AddExpenseSheet(categoryId: categoryId),
+                    );
                     setState(() {});
                   },
                   child: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(color: AC.text.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
-                    child: Icon(Icons.add, size: 16, color: AC.text),
+                    width: 28,
+                    height: 28,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF1A1A2E),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add, size: 14, color: Colors.white),
                   ),
                 ),
               ],
             ),
             const Spacer(),
-            Text(category.name, style: GoogleFonts.outfit(fontSize: 14, fontWeight: FontWeight.w600, color: AC.text)),
-            const SizedBox(height: 4),
-            Text(fmtAmount(total), style: GoogleFonts.dmSans(fontSize: 20, fontWeight: FontWeight.w600, color: AC.text)),
+            Text(
+              category.name,
+              style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w500, color: AC.textOnVivid),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              fmtAmount(total),
+              style: GoogleFonts.dmSans(fontSize: 20, fontWeight: FontWeight.bold, color: AC.textOnVivid),
+            ),
             if (category.budget != null) ...[
               const SizedBox(height: 6),
               ClipRRect(
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(3),
                 child: LinearProgressIndicator(
                   value: (total / category.budget!).clamp(0.0, 1.0),
                   minHeight: 4,
-                  backgroundColor: AC.text.withValues(alpha: 0.15),
-                  valueColor: AlwaysStoppedAnimation(total > category.budget! ? Colors.red[300]! : AC.accent),
+                  backgroundColor: Colors.white.withValues(alpha: 0.3),
+                  valueColor: const AlwaysStoppedAnimation(Colors.white),
                 ),
               ),
             ],
@@ -668,13 +689,16 @@ class _HomeScreenState extends State<HomeScreen> with TickerProviderStateMixin {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.transparent,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: AC.accent.withValues(alpha: 0.4), width: 1.5),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: themeNotifier.value ? const Color(0xFF444466) : const Color(0xFFCCCCCC),
+            width: 1.5,
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.add_circle_outline_rounded, size: 32, color: AC.accent),
+            Icon(Icons.add, size: 28, color: AC.textLight),
             const SizedBox(height: 8),
             Text('New Category', style: GoogleFonts.inter(fontSize: 13, color: AC.textLight, fontWeight: FontWeight.w500)),
           ],

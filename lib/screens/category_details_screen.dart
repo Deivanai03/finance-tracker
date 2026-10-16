@@ -182,7 +182,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> with Sing
               background: Container(
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [AC.primary, AC.secondary],
+                    colors: [AC.primary, AC.card],
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                   ),
@@ -220,7 +220,7 @@ class _CategoryDetailsScreenState extends State<CategoryDetailsScreen> with Sing
                     children: [
                       Expanded(child: _statCard('This Month', fmtAmount(monthTotal), AC.primary)),
                       const SizedBox(width: 12),
-                      Expanded(child: _statCard('Today', fmtAmount(todayTotal), AC.secondary)),
+                      Expanded(child: _statCard('Today', fmtAmount(todayTotal), AC.card)),
                     ],
                   ),
                   Builder(builder: (_) {

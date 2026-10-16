@@ -182,8 +182,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
-                    color: AC.primary,
+                    color: AC.card,
                     borderRadius: BorderRadius.circular(12),
+                    border: Border(
+                      left: BorderSide(color: AC.accent, width: 4),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -277,7 +280,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
         decoration: BoxDecoration(
-          color: AC.primary,
+          color: AC.card,
           borderRadius: BorderRadius.circular(10),
         ),
         child: Row(
@@ -357,13 +360,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
         decoration: BoxDecoration(
           color: AC.card,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: AC.primary.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 2))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 8, offset: const Offset(0, 2))],
         ),
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
           leading: Container(
             width: 44, height: 44,
-            decoration: BoxDecoration(color: AC.primary, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(color: AppColors.cardColors[expense.categoryId % AppColors.cardColors.length], borderRadius: BorderRadius.circular(12)),
             alignment: Alignment.center,
             child: Text(category?.emoji ?? '💰', style: const TextStyle(fontSize: 22)),
           ),

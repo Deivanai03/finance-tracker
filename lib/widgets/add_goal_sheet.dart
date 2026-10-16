@@ -73,7 +73,7 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
           const SizedBox(height: 24),
           TextField(
             controller: emojiController,
-            style: const TextStyle(fontSize: 24, color: Colors.black),
+            style: TextStyle(fontSize: 24, color: AC.text),
             decoration: InputDecoration(
               labelText: 'Icon',
               labelStyle: GoogleFonts.inter(color: AC.textLight, fontSize: 13),
@@ -85,7 +85,7 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
           const SizedBox(height: 12),
           TextField(
             controller: nameController,
-            style: const TextStyle(color: Colors.black),
+            style: TextStyle(color: AC.text),
             decoration: InputDecoration(
               labelText: 'What do you want?',
               labelStyle: GoogleFonts.inter(color: AC.textLight, fontSize: 13),
@@ -99,7 +99,7 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
           TextField(
             controller: amountController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            style: const TextStyle(color: Colors.black),
+            style: TextStyle(color: AC.text),
             decoration: InputDecoration(
               labelText: 'Target Amount',
               labelStyle: GoogleFonts.inter(color: AC.textLight, fontSize: 13),
@@ -117,13 +117,12 @@ class _AddGoalSheetState extends State<AddGoalSheet> {
               width: double.infinity,
               height: 54,
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [AC.accent, AC.primary], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                color: AC.accent,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(color: AC.accent.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 6))],
               ),
               alignment: Alignment.center,
               child: Text(isEdit ? 'Save Changes ✨' : 'Add to Wishlist ✨',
-                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AC.text)),
+                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AC.textOnVivid)),
             ),
           ),
         ],

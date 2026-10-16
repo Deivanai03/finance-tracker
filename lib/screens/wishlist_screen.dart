@@ -18,16 +18,6 @@ class WishlistScreen extends StatefulWidget {
 class _WishlistScreenState extends State<WishlistScreen> {
   late final ConfettiController _confettiCtrl;
 
-  static const _lightCardColors = [
-    Color(0xFFFDE8EE), Color(0xFFEADFFF), Color(0xFFDDEEE8),
-    Color(0xFFFFF0D6), Color(0xFFD6EAFF), Color(0xFFFFE4F0),
-  ];
-  static const _darkCardColors = [
-    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
-    Color(0xFF1E2235), Color(0xFF1A2030), Color(0xFF1C1F2E),
-  ];
-  List<Color> get _cardColors => themeNotifier.value ? _darkCardColors : _lightCardColors;
-
   @override
   void initState() {
     super.initState();
@@ -90,13 +80,11 @@ class _WishlistScreenState extends State<WishlistScreen> {
                 width: double.infinity,
                 height: 54,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: [AC.accent, AC.primary], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                  color: AC.accent,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: AC.accent.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 6))],
                 ),
                 alignment: Alignment.center,
-                child: Text('Save ✨', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AC.text)),
-              ),
+                child: Text('Save ✨', style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AC.textOnVivid)),              ),
             ),
           ],
         ),
@@ -136,13 +124,13 @@ class _WishlistScreenState extends State<WishlistScreen> {
                           child: Container(
                             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                             decoration: BoxDecoration(
-                              gradient: LinearGradient(colors: [AC.accent, AC.primary]),
+                              color: AC.accent,
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(children: [
-                              Icon(Icons.add, size: 16, color: AC.text),
+                              Icon(Icons.add, size: 16, color: AC.textOnVivid),
                               const SizedBox(width: 4),
-                              Text('Add', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AC.text)),
+                              Text('Add', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AC.textOnVivid)),
                             ]),
                           ),
                         ),
@@ -181,7 +169,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
               confettiController: _confettiCtrl,
               blastDirectionality: BlastDirectionality.explosive,
               numberOfParticles: 30,
-              colors: [AC.accent, AC.primary, AC.secondary, Color(0xFFC9D8C5)],
+              colors: [AC.accent, AC.primary, AC.success, const Color(0xFFC9D8C5)],
               shouldLoop: false,
             ),
           ),
@@ -193,7 +181,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
   Widget _buildGoalCard(SavingsGoal goal, int index) {
     final progress = (goal.savedAmount / goal.targetAmount).clamp(0.0, 1.0);
     final isComplete = progress >= 1.0;
-    final color = isComplete ? AC.success : _cardColors[index % _cardColors.length];
+    final color = isComplete ? AC.success : AppColors.cardColors[index % AppColors.cardColors.length];
     final remaining = goal.targetAmount - goal.savedAmount;
 
     return Container(
@@ -201,7 +189,6 @@ class _WishlistScreenState extends State<WishlistScreen> {
       decoration: BoxDecoration(
         color: color,
         borderRadius: BorderRadius.circular(28),
-        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.6), blurRadius: 16, offset: const Offset(0, 6))],
       ),
       padding: const EdgeInsets.all(20),
       child: Column(
@@ -215,10 +202,10 @@ class _WishlistScreenState extends State<WishlistScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(goal.name, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AC.text)),
+                    Text(goal.name, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AC.textOnVivid)),
                     Text(
                       isComplete ? '🎉 Goal reached!' : '${fmtAmount(remaining)} to go',
-                      style: GoogleFonts.inter(fontSize: 12, color: isComplete ? AC.text : AC.textLight),
+                      style: GoogleFonts.inter(fontSize: 12, color: isComplete ? AC.textOnVivid : AC.textOnVivid),
                     ),
                   ],
                 ),
@@ -277,7 +264,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
             children: [
               Text(
                 '${fmtAmount(goal.savedAmount)} / ${fmtAmount(goal.targetAmount)}',
-                style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.bold, color: AC.text),
+                style: GoogleFonts.dmSans(fontSize: 14, fontWeight: FontWeight.bold, color: AC.textOnVivid),
               ),
               if (!isComplete)
                 GestureDetector(
@@ -285,7 +272,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                     decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.7), borderRadius: BorderRadius.circular(10)),
-                    child: Text('+ Add savings', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AC.text)),
+                    child: Text('+ Add savings', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AC.textOnVivid)),
                   ),
                 ),
             ],

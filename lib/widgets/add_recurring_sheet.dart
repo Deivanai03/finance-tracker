@@ -95,7 +95,7 @@ class _AddRecurringSheetState extends State<AddRecurringSheet> {
           const SizedBox(height: 24),
           TextField(
             controller: nameController,
-            style: const TextStyle(color: Colors.black),
+            style: TextStyle(color: AC.text),
             decoration: InputDecoration(
               labelText: 'Name',
               labelStyle: GoogleFonts.inter(color: AC.textLight, fontSize: 13),
@@ -175,13 +175,12 @@ class _AddRecurringSheetState extends State<AddRecurringSheet> {
               width: double.infinity,
               height: 54,
               decoration: BoxDecoration(
-                gradient: LinearGradient(colors: [AC.accent, AC.primary], begin: Alignment.topLeft, end: Alignment.bottomRight),
+                color: AC.accent,
                 borderRadius: BorderRadius.circular(16),
-                boxShadow: [BoxShadow(color: AC.accent.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 6))],
               ),
               alignment: Alignment.center,
               child: Text(isEdit ? 'Save Changes ✨' : 'Save ✨',
-                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AC.text)),
+                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AC.textOnVivid)),
             ),
           ),
         ],

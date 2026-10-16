@@ -138,7 +138,7 @@ class _AddExpenseSheetState extends State<AddExpenseSheet> {
             // Amount field
             Container(
               decoration: BoxDecoration(
-                color: AC.primary.withValues(alpha: 0.4),
+                color: AC.card,
                 borderRadius: BorderRadius.circular(20),
               ),
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -210,20 +210,13 @@ class _AddExpenseSheetState extends State<AddExpenseSheet> {
                 width: double.infinity,
                 height: 54,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AC.accent, AC.primary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  color: AC.accent,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(color: AC.accent.withValues(alpha: 0.4), blurRadius: 16, offset: const Offset(0, 6)),
-                  ],
                 ),
                 alignment: Alignment.center,
                 child: Text(
                   isEdit ? 'Update ✨' : 'Save ✨',
-                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AC.text),
+                  style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.w600, color: AC.textOnVivid),
                 ),
               ),
             ),

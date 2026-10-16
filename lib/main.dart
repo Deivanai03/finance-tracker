@@ -56,40 +56,54 @@ Future<void> main() async {
 }
 
 class AppColors {
-  final Color bg, primary, accent, secondary, card, success, text, textLight;
+  final Color bg, card, hero, accent, text, textLight, textOnVivid, success, primary;
 
   const AppColors._({
     required this.bg,
-    required this.primary,
-    required this.accent,
-    required this.secondary,
     required this.card,
-    required this.success,
+    required this.hero,
+    required this.accent,
     required this.text,
     required this.textLight,
+    required this.textOnVivid,
+    required this.success,
+    required this.primary,
   });
 
   static const light = AppColors._(
-    bg: Color(0xFFFFF9F7),
-    primary: Color(0xFFF9DDE5),
-    accent: Color(0xFFE7B5C5),
-    secondary: Color(0xFFEADFFF),
-    card: Color(0xFFFFFCFC),
-    success: Color(0xFFC9D8C5),
-    text: Color(0xFF4A3B3B),
-    textLight: Color(0xFF9E8585),
+    bg: Color(0xFFFAFAF5),
+    card: Color(0xFFFFFFFF),
+    hero: Color(0xFF1A1A2E),
+    accent: Color(0xFFFFD93D),
+    text: Color(0xFF1A1A2E),
+    textLight: Color(0xFF6B7280),
+    textOnVivid: Color(0xFF1A1A2E),
+    success: Color(0xFF6BCB77),
+    primary: Color(0xFFF0F0E8),
   );
 
   static const dark = AppColors._(
-    bg: Color(0xFF0F1117),
-    primary: Color(0xFF222535),
-    accent: Color(0xFFCBA8F0),
-    secondary: Color(0xFF1E2230),
-    card: Color(0xFF1A1D27),
-    success: Color(0xFF7EC8A0),
-    text: Color(0xFFE8EAF0),
-    textLight: Color(0xFF7A7F99),
+    bg: Color(0xFF1A1A2E),
+    card: Color(0xFF252540),
+    hero: Color(0xFF252540),
+    accent: Color(0xFFFFD93D),
+    text: Color(0xFFFFFFFF),
+    textLight: Color(0xFF9CA3AF),
+    textOnVivid: Color(0xFF1A1A2E),
+    success: Color(0xFF6BCB77),
+    primary: Color(0xFF252540),
   );
+
+  static const cardColors = [
+    Color(0xFFFF6B6B),
+    Color(0xFFFFD93D),
+    Color(0xFF6BCB77),
+    Color(0xFFC77DFF),
+    Color(0xFF4D96FF),
+    Color(0xFFFF6BD6),
+    Color(0xFFFF9F43),
+    Color(0xFFA8E063),
+  ];
 }
 
 class FinanceTrackerApp extends StatelessWidget {
@@ -127,7 +141,6 @@ class FinanceTrackerApp extends StatelessWidget {
         surface: colors.card,
       ).copyWith(
         primary: colors.accent,
-        secondary: colors.secondary,
         surface: colors.card,
         onSurface: colors.text,
       ),

@@ -235,13 +235,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(colors: [AC.accent, AC.primary]),
+                        color: AC.accent,
                         borderRadius: BorderRadius.circular(10),
                       ),
                       child: Row(children: [
-                        Icon(Icons.add, size: 14, color: AC.text),
+                        Icon(Icons.add, size: 14, color: AC.textOnVivid),
                         const SizedBox(width: 4),
-                        Text('Add', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AC.text)),
+                        Text('Add', style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AC.textOnVivid)),
                       ]),
                     ),
                   ),
@@ -304,7 +304,7 @@ class _SectionLabel extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8, top: 4),
-      child: Text(text, style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AC.textLight, letterSpacing: 1)),
+      child: Text(text, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AC.textLight, letterSpacing: 1.2)),
     );
   }
 }
@@ -469,15 +469,8 @@ class _SalaryDatePickerState extends State<_SalaryDatePicker> {
                   child: Container(
                     height: 50,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [AC.accent, AC.primary],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: AC.accent,
                       borderRadius: BorderRadius.circular(14),
-                      boxShadow: [
-                        BoxShadow(color: AC.accent.withValues(alpha: 0.35), blurRadius: 12, offset: const Offset(0, 4)),
-                      ],
                     ),
                     alignment: Alignment.center,
                     child: Text(
@@ -485,7 +478,7 @@ class _SalaryDatePickerState extends State<_SalaryDatePicker> {
                       style: GoogleFonts.inter(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
-                        color: _selected != null ? AC.bg : AC.textLight,
+                        color: _selected != null ? AC.textOnVivid : AC.textLight,
                       ),
                     ),
                   ),
